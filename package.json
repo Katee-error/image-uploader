@@ -1,0 +1,25 @@
+{
+  "name": "image-processing-app",
+  "version": "0.1.0",
+  "description": "Full-stack TypeScript application for uploading, processing, and displaying images",
+  "private": true,
+  "scripts": {
+    "start:infra": "docker-compose -f docker/docker-compose.yml up -d",
+    "stop:infra": "docker-compose -f docker/docker-compose.yml down",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend/auth-service && npm install && cd ../image-service && npm install && cd ../api-gateway && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "proto:generate": "cd backend/auth-service && npm run proto:generate && cd ../image-service && npm run proto:generate && cd ../api-gateway && npm run proto:generate",
+    "start:auth": "cd backend/auth-service && npm run start:dev",
+    "start:image": "cd backend/image-service && npm run start:dev",
+    "start:gateway": "cd backend/api-gateway && npm run start:dev",
+    "start:frontend": "cd frontend && npm run dev",
+    "start:backend": "concurrently \"npm run start:auth\" \"npm run start:image\" \"npm run start:gateway\"",
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend/auth-service && npm run build && cd ../image-service && npm run build && cd ../api-gateway && npm run build",
+    "build:frontend": "cd frontend && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+}}

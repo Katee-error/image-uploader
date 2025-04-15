@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package image;
+
+service ImageService {
+  rpc UploadImage(stream UploadImageRequest) returns (UploadImageResponse);
+  rpc GetUserLastImage(GetUserLastImageRequest) returns (ImageInfo);
+  rpc GetImageById(GetImageByIdRequest) returns (ImageInfo);
+  rpc GetOriginalImage(GetImageRequest) returns (GetImageResponse);
+  rpc GetOptimizedImage(GetImageRequest) returns (GetImageResponse);
+}
+
+message UploadImageRequest {
+  oneof data {
+    ImageMetadata metadata = 1;
+    bytes chunk = 2;
+  }
+}
+
+message ImageMetadata {
+  string filename = 1;
+  string contentType = 2;
+  string userId = 3;
+}
+
+message UploadImageResponse {
+  bool success = 1;
+  string message = 2;
+  string imageId = 3;
+  string originalImageUrl = 4;
+}
+
+message GetUserLastImageRequest {
+  string userId = 1;
+}
+
+message GetImageByIdRequest {
+  string imageId = 1;
+}
+
+message ImageInfo {
+  string id = 1;
+  string originalName = 2;
+  string filePath = 3;
+  string processingStatus = 4;
+  ImageDimensions dimensions = 5;
+  string userId = 6;
+  string uploadDate = 7;
+  string optimizedPath = 8;
+}
+
+message ImageDimensions {
+  int32 width = 1;
+  int32 height = 2;
+}
+
+message GetImageRequest {
+  string imageId = 1;
+}
+
+message GetImageResponse {
+  bool success = 1;
+  string message = 2;
+  bytes imageData = 3;
+  string contentType = 4;
+}
