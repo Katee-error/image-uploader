@@ -16,7 +16,7 @@ interface UploadImageRequest {
 interface UploadImageResponse {
   success: boolean;
   message: string;
-  imageId: string;
+  image?: ImageInfo;
   originalImageUrl: string;
 }
 
@@ -61,14 +61,9 @@ interface ImageInfo {
 export class ImageController implements OnModuleInit {
   constructor(private readonly imageService: ImageService) {}
 
-  private readonly imageStreams = new Map<
-    string,
-    Subject<UploadImageRequest>
-  >();
+  private readonly imageStreams = new Map<string, Subject<UploadImageRequest>>();
 
-  onModuleInit() {
-    // Initialize any resources if needed
-  }
+  onModuleInit() {}
 
   @GrpcStreamMethod("ImageService", "UploadImage")
   uploadImage(
@@ -98,7 +93,6 @@ export class ImageController implements OnModuleInit {
             subject.next({
               success: false,
               message: "No metadata provided",
-              imageId: "",
               originalImageUrl: "",
             });
             subject.complete();
@@ -113,24 +107,27 @@ export class ImageController implements OnModuleInit {
             offset += chunk.byteLength;
           }
 
-          const image = await this.imageService.uploadImage(
+          const imageEntity = await this.imageService.uploadImage(
             Buffer.from(fileBuffer),
             imageMetadata.filename,
             imageMetadata.contentType,
             imageMetadata.userId
           );
 
+          const imageInfo = this.mapImageToInfo(imageEntity);
+
           subject.next({
             success: true,
             message: "Image uploaded successfully",
-            imageId: image.id,
-            originalImageUrl: image.filePath,
-          });
-        } catch (error) {
+            originalImageUrl: imageEntity.filePath,
+            image: this.mapImageToInfo(imageEntity),
+          }); 
+          
+        } catch (error: any) {
+          console.error("[❌] Upload error:", error);
           subject.next({
             success: false,
             message: error.message || "Failed to upload image",
-            imageId: "",
             originalImageUrl: "",
           });
         } finally {
@@ -141,7 +138,6 @@ export class ImageController implements OnModuleInit {
         subject.next({
           success: false,
           message: err.message || "Error processing upload",
-          imageId: "",
           originalImageUrl: "",
         });
         subject.complete();
@@ -188,7 +184,7 @@ export class ImageController implements OnModuleInit {
         imageData: new Uint8Array(buffer),
         contentType,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error in getOriginalImage gRPC method: ${error.message}`);
       return {
         success: false,
@@ -205,13 +201,14 @@ export class ImageController implements OnModuleInit {
   ): Promise<GetImageResponse> {
     try {
       const { buffer, contentType } = await this.imageService.getOptimizedImageData(request.imageId);
+      console.log(`[📏] Buffer size: ${buffer.length} bytes`);
       return {
         success: true,
         message: "Optimized image retrieved successfully",
         imageData: new Uint8Array(buffer),
         contentType,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error in getOptimizedImage gRPC method: ${error.message}`);
       return {
         success: false,
@@ -235,3 +232,4 @@ export class ImageController implements OnModuleInit {
     };
   }
 }
+

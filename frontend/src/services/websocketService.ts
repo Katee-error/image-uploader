@@ -42,11 +42,10 @@ class WebSocketService {
       this.notifyImageUpdate(image);
     });
 
-    // Handle authentication errors
+  
     this.socket.on('auth_error', async (error) => {
-      console.error('WebSocket authentication error:', error);
-      
-      // Try to refresh the token
+      console.error('WebSocket authentication error:', error);  
+
       try {
         const currentToken = localStorage.getItem('token');
         if (!currentToken) {
@@ -54,12 +53,10 @@ class WebSocketService {
           return;
         }
         
-        // Import refreshToken dynamically to avoid circular dependency
         const { refreshToken } = await import('./authService');
         const refreshResponse = await refreshToken(currentToken);
         
         if (refreshResponse && refreshResponse.success && refreshResponse.token) {
-          // Token refreshed successfully, reconnect with new token
           localStorage.setItem('token', refreshResponse.token);
           this.disconnect();
           this.connect();
@@ -93,19 +90,16 @@ class WebSocketService {
     const callbacks = this.imageUpdateCallbacks.get(imageId)!;
     callbacks.push(callback);
 
-    // If connected, subscribe to updates for this image
     if (this.socket && this.socket.connected) {
       this.socket.emit('subscribe:image', { imageId });
     }
 
-    // Return unsubscribe function
     return () => {
       const index = callbacks.indexOf(callback);
       if (index !== -1) {
         callbacks.splice(index, 1);
       }
 
-      // If no more callbacks for this image, unsubscribe
       if (callbacks.length === 0) {
         this.imageUpdateCallbacks.delete(imageId);
         if (this.socket && this.socket.connected) {
@@ -123,7 +117,6 @@ class WebSocketService {
   }
 }
 
-// Create a singleton instance
 const websocketService = new WebSocketService();
 
 export default websocketService;

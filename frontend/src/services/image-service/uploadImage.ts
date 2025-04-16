@@ -6,7 +6,7 @@ export interface UploadImageResponse {
   success: boolean;
   message: string;
   image: Image;
-  originalImageUrl: string; // добавляем вручную на клиенте
+  originalImageUrl: string;
 }
 
 export const uploadImage = async (file: File): Promise<UploadImageResponse> => {

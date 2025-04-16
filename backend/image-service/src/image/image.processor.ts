@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from 'bull';
 import { S3Service } from './s3.service';
+import { NotificationService } from './notification.service';
 import { Image, ProcessingStatus } from '../entities/image.entity';
 import sharp from 'sharp';
 import NodeCache from 'node-cache';
@@ -22,6 +23,7 @@ export class ImageProcessor {
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
     private readonly s3Service: S3Service,
+    private readonly notificationService: NotificationService,
   ) {
     this.cache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
   }
@@ -64,6 +66,7 @@ export class ImageProcessor {
       const processedImageBuffer = await sharp(imageBuffer)
         .webp({ quality: 70 }) // Reduced quality for faster processing
         .toBuffer();
+        this.logger.log(`[Sharp] Image optimized to buffer, size: ${processedImageBuffer.length} bytes`);
 
       const originalName = filePath.split('/').pop() || 'image.jpg';
       const optimizedName = `${originalName.split('.')[0]}.webp`;
@@ -83,12 +86,14 @@ export class ImageProcessor {
         },
         optimizedPath: optimizedPath,
       };
-
-      // Update the image record in the database
       await this.imageRepository.update(imageId, result);
+      this.logger.log(`[DB] Update complete for imageId=${imageId}`);
 
       // Cache the result
       this.cache.set(imageId, result);
+
+      // Notify the API Gateway about the processed image
+      await this.notificationService.notifyImageProcessed(imageId);
 
       this.logger.log(`Successfully processed image ${imageId}`);
     } catch (error) {
@@ -98,6 +103,13 @@ export class ImageProcessor {
       await this.imageRepository.update(imageId, {
         processingStatus: ProcessingStatus.FAILED,
       });
+      
+      // Notify about failed processing too
+      try {
+        await this.notificationService.notifyImageProcessed(imageId);
+      } catch (notifyError) {
+        this.logger.error(`Failed to notify about failed image ${imageId}`, notifyError.stack);
+      }
     }
   }
 }

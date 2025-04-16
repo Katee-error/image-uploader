@@ -18,7 +18,7 @@ export class S3Service {
         "AWS_S3_ENDPOINT",
         "http://localhost:9000"
       ),
-      s3ForcePathStyle: true, // Needed for Minio
+      s3ForcePathStyle: true,
       signatureVersion: "v4",
     });
   }
@@ -55,7 +55,7 @@ export class S3Service {
     const params = {
       Bucket: bucket,
       Key: key,
-      Expires: 3600, // URL expires in 1 hour
+      Expires: 3600, 
     };
 
     console.log(`Getting signed URL for bucket: ${bucket}, key: ${key}`);

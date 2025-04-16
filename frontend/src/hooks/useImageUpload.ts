@@ -19,21 +19,22 @@ export const useImageUpload = () => {
       try {
         const result = await uploadImage(files[0]);
 
+        const imageInfo = (result as any)?.image;
+
         toast({
           title: "Uploaded",
           description: "Your image is being processed",
           status: "success",
         });
 
-        if (result.image) {
-          setImage(null);
-          setImage(result.image);
-        }
+        setImage(null);
+        setTimeout(() => setImage(imageInfo), 0);
       } catch (error: any) {
         console.error("[❌] Upload error:", error);
         toast({
           title: "Upload failed",
-          description: error.message || "Unknown error",
+          description:
+            error?.response?.data?.message || error.message || "Unknown error",
           status: "error",
         });
       } finally {

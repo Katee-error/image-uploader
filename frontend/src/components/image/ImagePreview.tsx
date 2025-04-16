@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Badge,
   Card,
@@ -21,6 +21,44 @@ const ImagePreview: React.FC = () => {
   const { image, isLoading } = useLastImage();
   const updatedImage = useImageUpdates(image?.id || "", image || undefined);
   const activeImage = updatedImage || image;
+  // Add this to your ImagePreview component
+const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+
+useEffect(() => {
+  // Start polling when image is in PENDING or PROCESSING state
+  if (activeImage && 
+      (activeImage.processingStatus === ProcessingStatus.PENDING || 
+       activeImage.processingStatus === ProcessingStatus.PROCESSING)) {
+    
+    // Poll every 2 seconds for updates
+    const interval = setInterval(() => {
+      // This assumes useImageUpdates will fetch the latest status
+      // If not, you'll need to create a function to refetch the image data
+    }, 2000);
+    
+    setPollInterval(interval);
+  } else if (pollInterval) {
+    clearInterval(pollInterval);
+    setPollInterval(null);
+  }
+  
+  return () => {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+    }
+  };
+}, [activeImage?.processingStatus]);
+  
+  // Add a key state to force re-render when processing status changes
+  const [updateKey, setUpdateKey] = useState(0);
+  
+  // Monitor processing status changes
+  useEffect(() => {
+    if (activeImage?.processingStatus === ProcessingStatus.COMPLETED) {
+      // Increment the key to force a re-render when processing completes
+      setUpdateKey(prev => prev + 1);
+    }
+  }, [activeImage?.processingStatus]);
 
   const getStatusColor = (status: ProcessingStatus) => {
     switch (status) {
@@ -52,9 +90,10 @@ const ImagePreview: React.FC = () => {
           </Flex>
         ) : activeImage ? (
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
-            <Flex justify="center" align="center" minH="200px">
+            <Flex justify="center" align="center" minH="200px" key={`image-container-${updateKey}`}>
               {activeImage.processingStatus === ProcessingStatus.COMPLETED ? (
                 <OptimizedImage
+                  key={`optimized-${activeImage.id}-${updateKey}`}
                   imageId={activeImage.id}
                   originalName={activeImage.originalName}
                   status={activeImage.processingStatus}
@@ -108,4 +147,3 @@ const ImagePreview: React.FC = () => {
 };
 
 export default ImagePreview;
-

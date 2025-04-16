@@ -28,7 +28,9 @@ message UploadImageResponse {
   string message = 2;
   string imageId = 3;
   string originalImageUrl = 4;
+  ImageInfo image = 5; 
 }
+
 
 message GetUserLastImageRequest {
   string userId = 1;

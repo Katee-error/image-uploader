@@ -1,48 +1,62 @@
+import { useEffect, useState, useRef } from 'react';
 import { getOptimizedImage } from '@/services/image-service';
-import { useEffect, useState } from 'react';
 
 export const useOptimizedImage = (imageId: string, enabled = true) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Каждый раз, когда imageId или enabled изменяется, сбрасываем предыдущий optimized URL.
-  useEffect(() => {
-    setImageUrl(null);
-  }, [imageId, enabled]);
+  const previousStatusRef = useRef<boolean>(false);
 
   useEffect(() => {
-    if (!imageId || !enabled) return;
-
+    // Check if the enabled status changed from false to true
+    const statusChanged = enabled && !previousStatusRef.current;
+    previousStatusRef.current = enabled;
+    
+    if (!imageId || !enabled) {
+      // If not enabled, clear the image URL to force a refresh when it becomes enabled
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+        setImageUrl(null);
+      }
+      return;
+    }
+    
+    // Always fetch when enabled changes to true or when imageId changes
     let isCancelled = false;
-
+    setIsLoading(true);
+    setError(null);
+    
     const fetchImage = async () => {
-      setIsLoading(true);
-      setError(null);
-
       try {
+        // Clear previous image if exists
+        if (imageUrl) {
+          URL.revokeObjectURL(imageUrl);
+        }
+        
         const url = await getOptimizedImage(imageId);
+        
         if (!isCancelled) {
           setImageUrl(url);
         }
       } catch (err) {
-        console.error('[❌] Error loading optimized image:', err);
         if (!isCancelled) {
-          setError('Failed to load optimized image');
+          console.error("Error loading image:", err);
+          setError("Failed to load optimized image");
         }
       } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
+        if (!isCancelled) setIsLoading(false);
       }
     };
-
+    
     fetchImage();
-
+    
     return () => {
       isCancelled = true;
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+      }
     };
-  }, [imageId, enabled]);
-
+  }, [imageId, enabled]); // Remove imageUrl dependency to ensure it always fetches when enabled changes
+  
   return { imageUrl, isLoading, error };
 };

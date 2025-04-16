@@ -7,20 +7,22 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
   MessageBody,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
-import { AuthService } from '../auth/auth.service';
-import { WebsocketService } from './websocket.service';
-import { User } from '../generated/auth.pb';
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+import { Logger } from "@nestjs/common";
+import { AuthService } from "../auth/auth.service";
+import { WebsocketService } from "./websocket.service";
+import { User } from "../generated/auth.pb";
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: "*",
   },
-  namespace: '/',
+  namespace: "/",
 })
-export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class WebsocketGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   private readonly logger = new Logger(WebsocketGateway.name);
 
   @WebSocketServer()
@@ -28,17 +30,19 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
   constructor(
     private readonly authService: AuthService,
-    private readonly websocketService: WebsocketService,
+    private readonly websocketService: WebsocketService
   ) {}
 
   afterInit(server: Server) {
     this.websocketService.setServer(server);
-    this.logger.log('WebSocket Gateway initialized');
+    this.logger.log("WebSocket Gateway initialized");
   }
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth.token || client.handshake.headers.authorization?.split(' ')[1];
+      const token =
+        client.handshake.auth.token ||
+        client.handshake.headers.authorization?.split(" ")[1];
 
       if (!token) {
         client.disconnect();
@@ -49,7 +53,7 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
 
       if (!valid || !user) {
         // Emit auth_error event before disconnecting
-        client.emit('auth_error', { message: 'Invalid or expired token' });
+        client.emit("auth_error", { message: "Invalid or expired token" });
         client.disconnect();
         return;
       }
@@ -71,33 +75,35 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  @SubscribeMessage('subscribe:image')
+  @SubscribeMessage("subscribe:image")
   handleSubscribeToImage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { imageId: string },
+    @MessageBody() data: { imageId: string }
   ) {
     if (!data.imageId) {
-      return { success: false, message: 'Image ID is required' };
+      return { success: false, message: "Image ID is required" };
     }
 
     client.join(`image:${data.imageId}`);
     this.logger.log(`Client ${client.id} subscribed to image: ${data.imageId}`);
 
-    return { success: true, message: 'Subscribed to image updates' };
+    return { success: true, message: "Subscribed to image updates" };
   }
 
-  @SubscribeMessage('unsubscribe:image')
+  @SubscribeMessage("unsubscribe:image")
   handleUnsubscribeFromImage(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { imageId: string },
+    @MessageBody() data: { imageId: string }
   ) {
     if (!data.imageId) {
-      return { success: false, message: 'Image ID is required' };
+      return { success: false, message: "Image ID is required" };
     }
 
     client.leave(`image:${data.imageId}`);
-    this.logger.log(`Client ${client.id} unsubscribed from image: ${data.imageId}`);
+    this.logger.log(
+      `Client ${client.id} unsubscribed from image: ${data.imageId}`
+    );
 
-    return { success: true, message: 'Unsubscribed from image updates' };
+    return { success: true, message: "Unsubscribed from image updates" };
   }
 }

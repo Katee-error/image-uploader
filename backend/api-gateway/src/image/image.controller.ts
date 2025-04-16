@@ -35,7 +35,6 @@ import { Response } from "express";
 @UseGuards(JwtAuthGuard)
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
-
   @Post("upload")
   @ApiOperation({ summary: "Upload an image" })
   @ApiResponse({ status: 201, description: "Image uploaded successfully" })
@@ -60,11 +59,11 @@ export class ImageController {
     if (!file) {
       throw new HttpException("No file uploaded", HttpStatus.BAD_REQUEST);
     }
-
+  
     try {
       const subject = new Subject<UploadImageRequest>();
       const uploadObservable = this.imageService.uploadImage(subject);
-
+  
       const responsePromise = new Promise<UploadImageResponse>(
         (resolve, reject) => {
           uploadObservable.subscribe({
@@ -73,7 +72,7 @@ export class ImageController {
           });
         }
       );
-
+  
       subject.next({
         metadata: {
           filename: file.originalname,
@@ -81,7 +80,7 @@ export class ImageController {
           userId: req.user.id,
         },
       });
-
+  
       const chunkSize = 64 * 1024;
       for (let i = 0; i < file.buffer.length; i += chunkSize) {
         const chunk = file.buffer.slice(i, i + chunkSize);
@@ -89,20 +88,21 @@ export class ImageController {
           chunk: new Uint8Array(chunk),
         });
       }
-
+  
       subject.complete();
       const response = await responsePromise;
-
+  
       if (!response.success) {
         throw new HttpException(response.message, HttpStatus.BAD_REQUEST);
       }
-
+      
       return {
         success: true,
-        message: "Image uploaded successfully",
-        imageId: response.imageId,
+        message: response.message,
+        image: response.image,
         originalImageUrl: response.originalImageUrl,
       };
+      
     } catch (error: any) {
       throw new HttpException(
         error?.message || "Failed to upload image",
@@ -110,7 +110,7 @@ export class ImageController {
       );
     }
   }
-
+  
   @Get("last")
   @ApiOperation({ summary: "Get the user's last uploaded image" })
   @ApiResponse({

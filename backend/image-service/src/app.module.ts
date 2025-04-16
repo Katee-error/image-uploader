@@ -1,4 +1,7 @@
+
 import { Module } from '@nestjs/common';
+import { MulterModule } from '@nestjs/platform-express';
+import * as multer from 'multer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { BullModule } from '@nestjs/bull';
@@ -11,6 +14,11 @@ import { Image } from './entities/image.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    MulterModule.register({
+      storage: multer.memoryStorage(),
+    }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,6 +33,7 @@ import { Image } from './entities/image.entity';
         synchronize: configService.get('NODE_ENV', 'development') !== 'production',
       }),
     }),
+
     BullModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -35,7 +44,9 @@ import { Image } from './entities/image.entity';
         },
       }),
     }),
+
     ImageModule,
   ],
 })
 export class AppModule {}
+
