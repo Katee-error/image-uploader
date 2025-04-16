@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
-import { Image } from "../types/image";
-import websocketService from "../services/websocketService";
+import { Image } from "@/types";
+import { websocketService } from "@/services/websockets-service";
 
-/**
- * Custom hook to subscribe to real-time updates for an image
- * @param imageId The ID of the image to subscribe to updates for
- * @param initialImage Optional initial image data
- * @returns The latest image data
- */
 export const useImageUpdates = (
   imageId: string,
   initialImage?: Image

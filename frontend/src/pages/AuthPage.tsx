@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Box,
   Container,
@@ -10,14 +10,13 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-} from '@chakra-ui/react';
-import { LoginForm } from '@/components/auth-form/LoginForm';
-import { RegisterForm } from '@/components/auth-form/RegisterForm';
-
+} from "@chakra-ui/react";
+import { LoginForm } from "@/components/auth-form/LoginForm";
+import { RegisterForm } from "@/components/auth-form/RegisterForm";
 
 const AuthPage: React.FC = () => {
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
 
   return (
     <Flex minH="100vh" align="center" justify="center" bg="gray.50">
@@ -30,7 +29,13 @@ const AuthPage: React.FC = () => {
           borderWidth="1px"
           borderColor={borderColor}
         >
-          <Heading as="h1" size="xl" textAlign="center" mb={8} color="brand.600">
+          <Heading
+            as="h1"
+            size="lg"
+            textAlign="center"
+            mb={8}
+            color="brand.600"
+          >
             Image Processing App
           </Heading>
 
@@ -54,4 +59,4 @@ const AuthPage: React.FC = () => {
   );
 };
 
-export default AuthPage
+export default AuthPage;

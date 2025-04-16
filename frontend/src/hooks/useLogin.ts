@@ -1,13 +1,8 @@
-
 import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@context/AuthContext';
-
-export interface LoginFormData {
-  email: string;
-  password: string;
-}
+import { LoginFormData } from '@/types';
 
 export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { VStack, FormControl, FormLabel, Input, FormErrorMessage, Button } from '@chakra-ui/react';
-import { useRegister } from '@hooks/useRegister';
+import { useRegister } from '@/hooks'
 
 export const RegisterForm: React.FC = () => {
   const { formMethods, onSubmit, isLoading } = useRegister();

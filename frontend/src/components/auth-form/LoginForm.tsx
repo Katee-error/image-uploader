@@ -1,6 +1,6 @@
 import React from 'react';
 import { VStack, FormControl, FormLabel, Input, FormErrorMessage, Button } from '@chakra-ui/react';
-import { useLogin } from '@hooks/useLogin';
+import { useLogin } from '@/hooks';
 
 export const LoginForm: React.FC = () => {
   const { formMethods, onSubmit, isLoading } = useLogin();

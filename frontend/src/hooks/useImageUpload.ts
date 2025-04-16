@@ -1,13 +1,13 @@
 import { useDropzone } from "react-dropzone";
 import { useToast } from "@chakra-ui/react";
 import { useState } from "react";
-import { useLastImage } from "./useLastImage";
 import { uploadImage } from "@/services/image-service";
+import { Image } from "@/types";
 
 export const useImageUpload = () => {
   const toast = useToast();
-  const { setImage } = useLastImage();
   const [isUploading, setIsUploading] = useState(false);
+  const [currentImage, setCurrentImage] = useState<Image | null>(null);
 
   const dropzone = useDropzone({
     accept: { "image/*": [".jpeg", ".jpg", ".png", ".gif", ".webp"] },
@@ -19,7 +19,16 @@ export const useImageUpload = () => {
       try {
         const result = await uploadImage(files[0]);
 
-        const imageInfo = (result as any)?.image;
+        if (
+          !result ||
+          typeof result !== 'object' ||
+          !('image' in result) ||
+          typeof result.image !== 'object' ||
+          !result.image?.id
+        ) {
+          console.error("[❌] Invalid server response:", result);
+          throw new Error("Image info not returned from server");
+        }
 
         toast({
           title: "Uploaded",
@@ -27,14 +36,12 @@ export const useImageUpload = () => {
           status: "success",
         });
 
-        setImage(null);
-        setTimeout(() => setImage(imageInfo), 0);
+        setCurrentImage(result.image);
       } catch (error: any) {
         console.error("[❌] Upload error:", error);
         toast({
           title: "Upload failed",
-          description:
-            error?.response?.data?.message || error.message || "Unknown error",
+          description: error?.response?.data?.message || error.message || "Unknown error",
           status: "error",
         });
       } finally {
@@ -43,5 +50,5 @@ export const useImageUpload = () => {
     },
   });
 
-  return { ...dropzone, isUploading };
+  return { ...dropzone, isUploading, currentImage };
 };

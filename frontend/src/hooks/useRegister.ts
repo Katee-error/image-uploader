@@ -1,14 +1,8 @@
-
 import { useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@context/AuthContext';
-
-export interface RegisterFormData {
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import { RegisterFormData } from '@/types';
 
 export const useRegister = () => {
   const [isLoading, setIsLoading] = useState(false);

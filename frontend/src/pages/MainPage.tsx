@@ -1,8 +1,7 @@
 import React from "react";
 import { Box, Container, VStack } from "@chakra-ui/react";
-import ImageUploader from "@/components/image/ImageUploader";
-import ImagePreview from "@/components/image/ImagePreview";
 import { Header } from "@/components/header/Header";
+import { ImagePreview } from "@/components/image/ImagePreview";
 
 const MainPage: React.FC = () => {
   return (
@@ -10,7 +9,6 @@ const MainPage: React.FC = () => {
       <Header />
       <Container maxW="container.xl" py={8}>
         <VStack spacing={8} align="stretch">
-          <ImageUploader />
           <ImagePreview />
         </VStack>
       </Container>

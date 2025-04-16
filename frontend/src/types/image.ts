@@ -20,8 +20,19 @@ export enum ProcessingStatus {
   COMPLETED = 'COMPLETED',
   FAILED = 'FAILED',
 }
+
 export interface UploadImageResponse {
   success: boolean;
   message: string;
-  image: Image; 
+  image: Image;
+  originalImageUrl: string;
 }
+
+export interface DropzoneProps {
+  getRootProps: () => any;
+  getInputProps: () => any;
+  isDragActive: boolean;
+  isUploading: boolean;
+}
+
+

@@ -1,24 +1,17 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@chakra-ui/react';
-import { loginUser, registerUser, getCurrentUser, refreshToken } from '../services/authService';
-import { User } from '../types/user';
-
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, confirmPassword: string) => Promise<void>;
-  logout: () => void;
-}
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@chakra-ui/react";
+import { loginUser, registerUser, refreshToken } from "@/services/auth-service";
+import { User } from "@/types";
+import { getCurrentUser } from "@/services/user-service";
+import { AuthContextType } from "@/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -35,27 +28,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (token) {
         try {
-          // Try to get the current user
           const userData = await getCurrentUser();
           setUser(userData);
         } catch (error) {
-          console.error('Authentication error:', error);
-          
-          // Try to refresh the token
+          console.error("Authentication error:", error);
+
           const refreshResult = await refreshToken(token);
-          
+
           if (refreshResult && refreshResult.success && refreshResult.token) {
-            // Token refreshed successfully
-            localStorage.setItem('token', refreshResult.token);
+            localStorage.setItem("token", refreshResult.token);
             setUser(refreshResult.user);
-            console.log('Token refreshed successfully');
+            console.log("Token refreshed successfully");
           } else {
-            // Token refresh failed, logout
-            console.error('Token refresh failed');
-            localStorage.removeItem('token');
+            console.error("Token refresh failed");
+            localStorage.removeItem("token");
             setUser(null);
           }
         }
@@ -70,20 +59,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const { user, token } = await loginUser(email, password);
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
       setUser(user);
       toast({
-        title: 'Login successful',
-        status: 'success',
+        title: "Login successful",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
-      navigate('/');
+      navigate("/");
     } catch (error) {
       toast({
-        title: 'Login failed',
-        description: error instanceof Error ? error.message : 'An error occurred',
-        status: 'error',
+        title: "Login failed",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
@@ -93,35 +83,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, password: string, confirmPassword: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    confirmPassword: string
+  ) => {
     if (password !== confirmPassword) {
       toast({
-        title: 'Registration failed',
-        description: 'Passwords do not match',
-        status: 'error',
+        title: "Registration failed",
+        description: "Passwords do not match",
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
-      throw new Error('Passwords do not match');
+      throw new Error("Passwords do not match");
     }
 
     setIsLoading(true);
     try {
       const { user, token } = await registerUser(email, password);
-      localStorage.setItem('token', token);
+      localStorage.setItem("token", token);
       setUser(user);
       toast({
-        title: 'Registration successful',
-        status: 'success',
+        title: "Registration successful",
+        status: "success",
         duration: 3000,
         isClosable: true,
       });
-      navigate('/');
+      navigate("/");
     } catch (error) {
       toast({
-        title: 'Registration failed',
-        description: error instanceof Error ? error.message : 'An error occurred',
-        status: 'error',
+        title: "Registration failed",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
@@ -132,12 +127,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setUser(null);
-    navigate('/auth');
+    navigate("/auth");
     toast({
-      title: 'Logged out',
-      status: 'info',
+      title: "Logged out",
+      status: "info",
       duration: 3000,
       isClosable: true,
     });

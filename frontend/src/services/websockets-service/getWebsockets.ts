@@ -1,5 +1,5 @@
-import { io, Socket } from 'socket.io-client';
-import { Image } from '../types/image';
+import { io, Socket } from "socket.io-client";
+import { Image } from "@/types";
 
 type ImageUpdateCallback = (image: Image) => void;
 
@@ -12,65 +12,68 @@ class WebSocketService {
       return;
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      console.error('Cannot connect to WebSocket: No authentication token found');
+      console.error(
+        "Cannot connect to WebSocket: No authentication token found"
+      );
       return;
     }
 
     this.socket = io({
-      path: '/socket.io',
+      path: "/socket.io",
       auth: {
         token,
       },
     });
 
-    this.socket.on('connect', () => {
-      console.log('WebSocket connected');
+    this.socket.on("connect", () => {
+      console.log("WebSocket connected");
     });
 
-    this.socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+    this.socket.on("disconnect", () => {
+      console.log("WebSocket disconnected");
     });
 
-    this.socket.on('error', (error) => {
-      console.error('WebSocket error:', error);
+    this.socket.on("error", (error) => {
+      console.error("WebSocket error:", error);
     });
 
-    this.socket.on('image:update', (image: Image) => {
-      console.log('Received image update:', image);
+    this.socket.on("image:update", (image: Image) => {
       this.notifyImageUpdate(image);
     });
 
-  
-    this.socket.on('auth_error', async (error) => {
-      console.error('WebSocket authentication error:', error);  
+    this.socket.on("auth_error", async (error) => {
+      console.error("WebSocket authentication error:", error);
 
       try {
-        const currentToken = localStorage.getItem('token');
+        const currentToken = localStorage.getItem("token");
         if (!currentToken) {
           this.disconnect();
           return;
         }
-        
-        const { refreshToken } = await import('./authService');
+
+        const { refreshToken } = await import("../auth-service/getAuth");
         const refreshResponse = await refreshToken(currentToken);
-        
-        if (refreshResponse && refreshResponse.success && refreshResponse.token) {
-          localStorage.setItem('token', refreshResponse.token);
+
+        if (
+          refreshResponse &&
+          refreshResponse.success &&
+          refreshResponse.token
+        ) {
+          localStorage.setItem("token", refreshResponse.token);
           this.disconnect();
           this.connect();
         } else {
-          // Token refresh failed, disconnect
-          localStorage.removeItem('token');
+          localStorage.removeItem("token");
           this.disconnect();
-          window.location.href = '/auth';
+          window.location.href = "/auth";
         }
       } catch (refreshError) {
-        console.error('Failed to refresh token for WebSocket:', refreshError);
-        localStorage.removeItem('token');
+        console.error("Failed to refresh token for WebSocket:", refreshError);
+        localStorage.removeItem("token");
         this.disconnect();
-        window.location.href = '/auth';
+        window.location.href = "/auth";
       }
     });
   }
@@ -82,7 +85,10 @@ class WebSocketService {
     }
   }
 
-  subscribeToImageUpdates(imageId: string, callback: ImageUpdateCallback): () => void {
+  subscribeToImageUpdates(
+    imageId: string,
+    callback: ImageUpdateCallback
+  ): () => void {
     if (!this.imageUpdateCallbacks.has(imageId)) {
       this.imageUpdateCallbacks.set(imageId, []);
     }
@@ -91,7 +97,7 @@ class WebSocketService {
     callbacks.push(callback);
 
     if (this.socket && this.socket.connected) {
-      this.socket.emit('subscribe:image', { imageId });
+      this.socket.emit("subscribe:image", { imageId });
     }
 
     return () => {
@@ -103,7 +109,7 @@ class WebSocketService {
       if (callbacks.length === 0) {
         this.imageUpdateCallbacks.delete(imageId);
         if (this.socket && this.socket.connected) {
-          this.socket.emit('unsubscribe:image', { imageId });
+          this.socket.emit("unsubscribe:image", { imageId });
         }
       }
     };
@@ -117,6 +123,4 @@ class WebSocketService {
   }
 }
 
-const websocketService = new WebSocketService();
-
-export default websocketService;
+export const websocketService = new WebSocketService();

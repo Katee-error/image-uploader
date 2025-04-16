@@ -1,8 +1,6 @@
-// src/App.tsx
-import React from 'react';
-import { Box } from '@chakra-ui/react';
-import AppRoutes from './routes/Routes';
-
+import React from "react";
+import { Box } from "@chakra-ui/react";
+import { AppRoutes } from "./routes/Routes";
 
 export const App: React.FC = () => {
   return (
@@ -11,6 +9,3 @@ export const App: React.FC = () => {
     </Box>
   );
 };
-
-
-

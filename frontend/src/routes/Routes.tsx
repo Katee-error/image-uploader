@@ -1,12 +1,11 @@
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { Center, Spinner } from '@chakra-ui/react';
-import AuthPage from '@/pages/AuthPage';
-import ProtectedRoute from './ProtectedRoutes';
-import MainPage from '@/pages/MainPage';
+import React, { Suspense } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { Center, Spinner } from "@chakra-ui/react";
+import AuthPage from "@/pages/AuthPage";
+import { ProtectedRoute } from "./ProtectedRoutes";
+import MainPage from "@/pages/MainPage";
 
-
-const AppRoutes: React.FC = () => {
+export const AppRoutes: React.FC = () => {
   return (
     <Suspense
       fallback={
@@ -30,5 +29,3 @@ const AppRoutes: React.FC = () => {
     </Suspense>
   );
 };
-
-export default AppRoutes;
