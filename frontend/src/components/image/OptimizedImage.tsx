@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Image, Flex, Spinner, Text } from "@chakra-ui/react";
 import { ProcessingStatus, Image as ImageType } from "@/types/image";
 import { useOptimizedImage } from "@/hooks/useOptimazedImage";
@@ -11,6 +11,11 @@ interface Props {
 }
 
 export const OptimizedImage: React.FC<Props> = ({ imageId, originalName, status: initialStatus }) => {
+  // Track previous status to detect changes
+  const prevStatusRef = useRef<ProcessingStatus>(initialStatus);
+  // Force re-render when status changes to COMPLETED
+  const [refreshKey, setRefreshKey] = useState(0);
+  
   // Get real-time updates for the image
   const updatedImage = useImageUpdates(imageId);
   
@@ -20,6 +25,20 @@ export const OptimizedImage: React.FC<Props> = ({ imageId, originalName, status:
   
   // Get the optimized image URL
   const { imageUrl, isLoading, error } = useOptimizedImage(imageId, isReady);
+  
+  // Detect status changes, especially to COMPLETED
+  useEffect(() => {
+    // Check if status changed to COMPLETED
+    if (prevStatusRef.current !== ProcessingStatus.COMPLETED && 
+        status === ProcessingStatus.COMPLETED) {
+      console.log('Status changed to COMPLETED, refreshing image');
+      // Increment refresh key to force component re-render
+      setRefreshKey(prev => prev + 1);
+    }
+    
+    // Update the previous status reference
+    prevStatusRef.current = status;
+  }, [status]);
 
   // Show processing state
   if (status === ProcessingStatus.PROCESSING) {
@@ -58,9 +77,10 @@ export const OptimizedImage: React.FC<Props> = ({ imageId, originalName, status:
     );
   }
 
-  // Show the optimized image
+  // Show the optimized image with key for forced re-render
   return (
     <Image
+      key={`optimized-image-${refreshKey}-${Date.now()}`}
       src={`${imageUrl}#${Date.now()}`} // Add cache-busting fragment
       alt={`Optimized: ${originalName}`}
       borderRadius="md"

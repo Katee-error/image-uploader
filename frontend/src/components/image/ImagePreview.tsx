@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Badge,
   Card,
@@ -11,6 +11,7 @@ import {
   Spinner,
   Text,
   VStack,
+  Button,
 } from "@chakra-ui/react";
 import { ProcessingStatus } from "@/types/image";
 import { useLastImage } from "@/hooks/useLastImage";
@@ -18,46 +19,30 @@ import { useImageUpdates } from "@/hooks/useImageUpdates";
 import { OptimizedImage } from "./OptimizedImage";
 
 const ImagePreview: React.FC = () => {
-  const { image, isLoading } = useLastImage();
+  const { image, isLoading, refreshImage } = useLastImage();
   const updatedImage = useImageUpdates(image?.id || "", image || undefined);
   const activeImage = updatedImage || image;
-  // Add this to your ImagePreview component
-const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
-
-useEffect(() => {
-  // Start polling when image is in PENDING or PROCESSING state
-  if (activeImage && 
-      (activeImage.processingStatus === ProcessingStatus.PENDING || 
-       activeImage.processingStatus === ProcessingStatus.PROCESSING)) {
-    
-    // Poll every 2 seconds for updates
-    const interval = setInterval(() => {
-      // This assumes useImageUpdates will fetch the latest status
-      // If not, you'll need to create a function to refetch the image data
-    }, 2000);
-    
-    setPollInterval(interval);
-  } else if (pollInterval) {
-    clearInterval(pollInterval);
-    setPollInterval(null);
-  }
   
-  return () => {
-    if (pollInterval) {
-      clearInterval(pollInterval);
-    }
-  };
-}, [activeImage?.processingStatus]);
+  // Track previous processing status to detect changes
+  const prevStatusRef = useRef<ProcessingStatus | null>(null);
   
   // Add a key state to force re-render when processing status changes
   const [updateKey, setUpdateKey] = useState(0);
   
   // Monitor processing status changes
   useEffect(() => {
-    if (activeImage?.processingStatus === ProcessingStatus.COMPLETED) {
+    if (!activeImage) return;
+    
+    // Check if status changed to COMPLETED
+    if (prevStatusRef.current !== ProcessingStatus.COMPLETED && 
+        activeImage.processingStatus === ProcessingStatus.COMPLETED) {
+      console.log('Image processing completed, forcing re-render');
       // Increment the key to force a re-render when processing completes
       setUpdateKey(prev => prev + 1);
     }
+    
+    // Update previous status reference
+    prevStatusRef.current = activeImage.processingStatus;
   }, [activeImage?.processingStatus]);
 
   const getStatusColor = (status: ProcessingStatus) => {
@@ -78,10 +63,24 @@ useEffect(() => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleString() || "Unknown";
 
+  // Function to manually refresh the image if needed
+  const handleRefresh = () => {
+    console.log('Manually refreshing image');
+    refreshImage();
+    setUpdateKey(prev => prev + 1);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <Heading size="md">Image Upload & Processing</Heading>
+        <Flex justify="space-between" align="center">
+          <Heading size="md">Image Upload & Processing</Heading>
+          {activeImage && (
+            <Button size="sm" onClick={handleRefresh} colorScheme="blue">
+              Refresh
+            </Button>
+          )}
+        </Flex>
       </CardHeader>
       <CardBody>
         {isLoading ? (
