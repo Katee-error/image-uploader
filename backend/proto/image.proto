@@ -4,7 +4,6 @@ package image;
 
 service ImageService {
   rpc UploadImage(stream UploadImageRequest) returns (UploadImageResponse);
-  rpc GetUserLastImage(GetUserLastImageRequest) returns (ImageInfo);
   rpc GetImageById(GetImageByIdRequest) returns (ImageInfo);
   rpc GetOriginalImage(GetImageRequest) returns (GetImageResponse);
   rpc GetOptimizedImage(GetImageRequest) returns (GetImageResponse);
@@ -29,11 +28,6 @@ message UploadImageResponse {
   string imageId = 3;
   string originalImageUrl = 4;
   ImageInfo image = 5; 
-}
-
-
-message GetUserLastImageRequest {
-  string userId = 1;
 }
 
 message GetImageByIdRequest {

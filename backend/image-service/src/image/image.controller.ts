@@ -2,7 +2,7 @@ import { Controller, OnModuleInit } from "@nestjs/common";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable, Subject } from "rxjs";
 import { ImageService } from "./image.service";
-import { Image, ProcessingStatus } from "../entities/image.entity";
+import { Image } from "../entities/image.entity";
 
 interface UploadImageRequest {
   metadata?: {
@@ -18,10 +18,6 @@ interface UploadImageResponse {
   message: string;
   image?: ImageInfo;
   originalImageUrl: string;
-}
-
-interface GetUserLastImageRequest {
-  userId: string;
 }
 
 interface GetImageByIdRequest {
@@ -114,8 +110,6 @@ export class ImageController implements OnModuleInit {
             imageMetadata.userId
           );
 
-          const imageInfo = this.mapImageToInfo(imageEntity);
-
           subject.next({
             success: true,
             message: "Image uploaded successfully",
@@ -145,21 +139,6 @@ export class ImageController implements OnModuleInit {
     });
 
     return subject.asObservable();
-  }
-
-  @GrpcMethod("ImageService", "GetUserLastImage")
-  async getUserLastImage(
-    request: GetUserLastImageRequest
-  ): Promise<ImageInfo | null> {
-    try {
-      const image = await this.imageService.getUserLastImage(request.userId);
-      if (!image) {
-        return null;
-      }
-      return this.mapImageToInfo(image);
-    } catch (error) {
-      return null;
-    }
   }
 
   @GrpcMethod("ImageService", "GetImageById")
@@ -201,7 +180,6 @@ export class ImageController implements OnModuleInit {
   ): Promise<GetImageResponse> {
     try {
       const { buffer, contentType } = await this.imageService.getOptimizedImageData(request.imageId);
-      console.log(`[📏] Buffer size: ${buffer.length} bytes`);
       return {
         success: true,
         message: "Optimized image retrieved successfully",

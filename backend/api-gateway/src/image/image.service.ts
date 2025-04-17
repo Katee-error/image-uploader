@@ -25,13 +25,8 @@ export class ImageService implements OnModuleInit {
 
   async getOriginalImage(imageId: string): Promise<GetImageResponse> {
     try {
-      console.log(`API Gateway: Getting original image for ID: ${imageId}`);
       const response = await firstValueFrom(
         this.imageService.getOriginalImage({ imageId })
-      );
-
-      console.log(
-        `API Gateway: Got original image response, success: ${response.success}, contentType: ${response.contentType}, imageData length: ${response.imageData?.length || 0} bytes`
       );
 
       return response;
@@ -48,13 +43,8 @@ export class ImageService implements OnModuleInit {
 
   async getOptimizedImage(imageId: string): Promise<GetImageResponse> {
     try {
-      console.log(`API Gateway: Getting optimized image for ID: ${imageId}`);
       const response = await firstValueFrom(
         this.imageService.getOptimizedImage({ imageId })
-      );
-
-      console.log(
-        `API Gateway: Got optimized image response, success: ${response.success}, contentType: ${response.contentType}, imageData length: ${response.imageData?.length || 0} bytes`
       );
 
       return response;
@@ -66,18 +56,6 @@ export class ImageService implements OnModuleInit {
         imageData: new Uint8Array(),
         contentType: '',
       };
-    }
-  }
-
-  async getUserLastImage(userId: string): Promise<ImageInfo | null> {
-    try {
-      const response = await firstValueFrom(
-        this.imageService.getUserLastImage({ userId })
-      );
-      return response ?? null;
-    } catch (error) {
-      console.error('Error in getUserLastImage:', error);
-      return null;
     }
   }
 

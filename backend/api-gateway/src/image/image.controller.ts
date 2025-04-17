@@ -20,13 +20,12 @@ import {
   ApiConsumes,
   ApiBody,
 } from "@nestjs/swagger";
-import { Observable, Subject } from "rxjs";
+import { Subject } from "rxjs";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { ImageService } from "./image.service";
 import {
   UploadImageRequest,
   UploadImageResponse,
-  ImageInfo,
 } from "../generated/image.pb";
 import { Response } from "express";
 
@@ -106,42 +105,6 @@ export class ImageController {
     } catch (error: any) {
       throw new HttpException(
         error?.message || "Failed to upload image",
-        error?.status || HttpStatus.INTERNAL_SERVER_ERROR
-      );
-    }
-  }
-  
-  @Get("last")
-  @ApiOperation({ summary: "Get the user's last uploaded image" })
-  @ApiResponse({
-    status: 200,
-    description: "Image information retrieved successfully",
-  })
-  @ApiResponse({ status: 404, description: "Image not found" })
-  @ApiBearerAuth()
-  async getUserLastImage(@Req() req: any) {
-    try {
-      const image = await this.imageService.getUserLastImage(req.user.id);
-      if (!image) {
-        throw new HttpException("No images found", HttpStatus.NOT_FOUND);
-      }
-
-      return {
-        success: true,
-        image: {
-          id: image.id || "",
-          processingStatus: image.processingStatus || "PENDING",
-          originalName: image.originalName || "Unknown",
-          filePath: image.filePath || "",
-          uploadDate: image.uploadDate || new Date().toISOString(),
-          optimizedPath: image.optimizedPath || "",
-          dimensions: image.dimensions || { width: 0, height: 0 },
-          userId: image.userId || "",
-        },
-      };
-    } catch (error: any) {
-      throw new HttpException(
-        error?.message || "Failed to get image",
         error?.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }

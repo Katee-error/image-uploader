@@ -56,16 +56,6 @@ export class ImageService {
       where: { id: savedImage.id },
     });
   }
-
-  async getUserLastImage(userId: string): Promise<Image | null> {
-    const image = await this.imageRepository.findOne({
-      where: { userId },
-      order: { uploadDate: "DESC" },
-    });
-
-    return image;
-  }
-
   async getImageById(id: string): Promise<Image> {
     const image = await this.imageRepository.findOne({
       where: { id },
@@ -87,10 +77,6 @@ export class ImageService {
     ) {
       throw new NotFoundException("Optimized image not available yet");
     }
-
-    console.log(`Returning optimized image URL: ${image.optimizedPath}`);
-
-    // Return the optimized path directly, which should now be a public URL
     return image.optimizedPath;
   }
 
@@ -99,21 +85,15 @@ export class ImageService {
   ): Promise<{ buffer: Buffer; contentType: string; url: string }> {
     const image = await this.getImageById(id);
 
-    console.log(`Fetching original image data from: ${image.filePath}`);
-
     try {
-      // Extract the key from the filePath
       const urlParts = new URL(image.filePath);
       const pathParts = urlParts.pathname.split("/");
-      // The key should be in the format "original/uuid-filename.ext"
       const key = pathParts.slice(pathParts.indexOf("original")).join("/");
       console.log(`Original image key: ${key}`);
 
-      // Get a signed URL for the image
       const imageUrl = await this.s3Service.getFileUrl(key);
       console.log(`Original image signed URL: ${imageUrl}`);
 
-      // Fetch the image data
       const response = await fetch(imageUrl);
 
       if (!response.ok) {
@@ -124,8 +104,6 @@ export class ImageService {
 
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-
-      console.log(`Original image buffer size: ${buffer.length} bytes`);
 
       return {
         buffer,
@@ -153,21 +131,13 @@ export class ImageService {
       throw new NotFoundException("Optimized image not available yet");
     }
 
-    console.log(`Fetching optimized image data from: ${image.optimizedPath}`);
-
     try {
-      // Extract the key from the optimizedPath
       const urlParts = new URL(image.optimizedPath);
       const pathParts = urlParts.pathname.split("/");
-      // The key should be in the format "optimized/uuid-filename.webp"
       const key = pathParts.slice(pathParts.indexOf("optimized")).join("/");
-      console.log(`Optimized image key: ${key}`);
 
-      // Get a signed URL for the image
       const imageUrl = await this.s3Service.getFileUrl(key);
-      console.log(`Optimized image signed URL: ${imageUrl}`);
 
-      // Fetch the image data
       const response = await fetch(imageUrl);
 
       if (!response.ok) {
@@ -178,8 +148,6 @@ export class ImageService {
 
       const arrayBuffer = await response.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-
-      console.log(`Optimized image buffer size: ${buffer.length} bytes`);
 
       return {
         buffer,
