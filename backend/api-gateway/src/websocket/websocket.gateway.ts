@@ -52,16 +52,11 @@ export class WebsocketGateway
       const { valid, user } = await this.authService.validateTokenString(token);
 
       if (!valid || !user) {
-        // Emit auth_error event before disconnecting
         client.emit("auth_error", { message: "Invalid or expired token" });
         client.disconnect();
         return;
       }
-
-      // Store user data in socket
       client.data.user = user;
-
-      // Join user room
       client.join(`user:${user.id}`);
 
       this.logger.log(`Client connected: ${client.id}, User: ${user.email}`);

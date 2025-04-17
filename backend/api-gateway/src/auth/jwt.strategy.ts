@@ -22,11 +22,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     try {
-      // Log the payload for debugging
       console.log('JWT Payload:', payload);
-      
-      // The payload is already verified by Passport, so we can just return it
-      // We don't need to validate it again with the Auth service
       return {
         id: payload.sub,
         email: payload.email,

@@ -9,7 +9,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  // Apply global pipes
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -18,7 +17,6 @@ async function bootstrap() {
     }),
   );
 
-  // Setup gRPC microservice
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.GRPC,
     options: {
@@ -30,7 +28,6 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
   
-  // Optional: Start HTTP server for health checks or debugging
   const httpPort = configService.get('HTTP_PORT', 3001);
   await app.listen(httpPort);
   

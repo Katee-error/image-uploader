@@ -22,14 +22,12 @@ export class ImageService {
     contentType: string,
     userId: string
   ): Promise<Image> {
-    // Upload original image to S3
     const filePath = await this.s3Service.uploadFile(
       file,
       originalName,
       contentType
     );
 
-    // Create image record in database
     const image = this.imageRepository.create({
       originalName,
       filePath,
@@ -38,14 +36,12 @@ export class ImageService {
     });
 
     const savedImage = await this.imageRepository.save(image);
-    // Добавляем лог после сохранения
 
     try {
       await this.imageProcessingQueue.add("optimize", {
         imageId: savedImage.id,
         filePath,
       });
-      console.log(`[Queue] Added to queue: imageId=${savedImage.id}`);
     } catch (err) {
       console.error(
         `[Queue] Failed to add job for imageId=${savedImage.id}: ${err.message}`
@@ -89,10 +85,8 @@ export class ImageService {
       const urlParts = new URL(image.filePath);
       const pathParts = urlParts.pathname.split("/");
       const key = pathParts.slice(pathParts.indexOf("original")).join("/");
-      console.log(`Original image key: ${key}`);
 
       const imageUrl = await this.s3Service.getFileUrl(key);
-      console.log(`Original image signed URL: ${imageUrl}`);
 
       const response = await fetch(imageUrl);
 

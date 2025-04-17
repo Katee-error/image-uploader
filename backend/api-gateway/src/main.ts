@@ -11,10 +11,8 @@ async function bootstrap() {
   });
   const configService = app.get(ConfigService);
 
-  // Global prefix
   app.setGlobalPrefix('api');
 
-  // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -23,17 +21,14 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
   app.enableCors({
     origin: configService.get('CORS_ORIGIN', '*'),
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // WebSockets
   app.useWebSocketAdapter(new IoAdapter(app));
 
-  // Swagger API documentation
   const options = new DocumentBuilder()
     .setTitle('Image Processing API')
     .setDescription('API for image uploading and processing')
@@ -43,7 +38,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api/docs', app, document);
 
-  // Start the server
   const port = configService.get('PORT', 3001);
   await app.listen(port);
   console.log(`API Gateway is running on port ${port}`);

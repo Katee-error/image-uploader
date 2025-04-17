@@ -48,17 +48,12 @@ export class S3Service {
     if (!key) {
       throw new Error("File key is required");
     }
-
-    console.log(`Original key: ${key}`);
-
     const bucket = this.configService.get("AWS_S3_BUCKET", "images");
     const params = {
       Bucket: bucket,
       Key: key,
       Expires: 3600, 
     };
-
-    console.log(`Getting signed URL for bucket: ${bucket}, key: ${key}`);
     return this.s3.getSignedUrlPromise("getObject", params);
   }
 

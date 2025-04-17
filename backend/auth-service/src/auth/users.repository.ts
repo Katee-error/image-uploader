@@ -20,17 +20,13 @@ export class UsersRepository {
   }
 
   async create(email: string, password: string): Promise<User> {
-    // Hash the password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Create a new user
     const user = this.usersRepository.create({
       email,
       password: hashedPassword,
     });
 
-    // Save the user to the database
     return this.usersRepository.save(user);
   }
 

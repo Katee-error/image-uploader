@@ -22,7 +22,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    // Log the request for debugging
     const request = context.switchToHttp().getRequest();
     this.logger.debug(`Auth request path: ${request.path}`);
     this.logger.debug(`Auth headers: ${JSON.stringify(request.headers)}`);

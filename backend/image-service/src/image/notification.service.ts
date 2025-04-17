@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Image } from '../entities/image.entity';
 
 @Injectable()
 export class NotificationService {
@@ -38,11 +37,9 @@ export class NotificationService {
         const errorText = await response.text();
         throw new Error(`Failed to notify API Gateway: ${response.status} ${errorText}`);
       }
-
       this.logger.log(`Successfully notified API Gateway about processed image ${imageId}`);
     } catch (error) {
       this.logger.error(`Error notifying API Gateway about processed image ${imageId}:`, error.stack);
-      // Don't throw the error, just log it to prevent processing failures
     }
   }
 }

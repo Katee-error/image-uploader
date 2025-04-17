@@ -23,11 +23,8 @@ export class WebsocketService {
       if (!image) {
         return;
       }
-
-      // Emit to all clients subscribed to this image
       this.server.to(`image:${imageId}`).emit('image:update', image);
 
-      // Also emit to the user's room
       this.server.to(`user:${image.userId}`).emit('image:update', image);
     } catch (error) {
       console.error('Error notifying image update:', error);
