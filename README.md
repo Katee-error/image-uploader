@@ -47,8 +47,15 @@ cd backend/auth-service && npm run init:env
 cd ../image-service && npm run init:env
 cd ../api-gateway && npm run init:env
 ```
+### 6. Start all services together
 
-### 6. Start the backend services
+ ```bash
+cd .. && npm run start:all
+```
+
+Or you can run the services separately.
+
+### 7. Start the backend services
 
 ```bash
 # Start Auth Service (HTTP on port 3001, gRPC on port 50051)
@@ -61,7 +68,7 @@ cd backend/image-service && npm run start:dev
 cd backend/api-gateway && npm run start:dev
 ```
 
-### 7. Start the frontend
+### 8. Start the frontend
 
 ```bash
 cd frontend && npm run dev
