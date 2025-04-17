@@ -142,7 +142,10 @@ The frontend will be available at http://localhost:3000.
 /
 ├── frontend/                  # React + TypeScript frontend
 │   ├── src/
+│   │   ├── api/        
 │   │   ├── components/        # Reusable UI components
+│   │   ├── routes/       
+│   │   ├── theme/       
 │   │   ├── pages/             # Page components
 │   │   ├── services/          # API services
 │   │   ├── hooks/             # Custom hooks
