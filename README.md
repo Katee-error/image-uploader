@@ -8,7 +8,7 @@ This is a full-stack TypeScript application for uploading, processing, and displ
 
 ```bash
 git clone <repository-url>
-cd image-processing-app
+cd image-uploader
 ```
 
 ### 2. Start the infrastructure services
