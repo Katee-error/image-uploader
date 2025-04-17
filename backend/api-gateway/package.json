@@ -15,7 +15,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb --proto_path=../proto ../proto/*.proto"
+    "proto:generate": "protoc --plugin=protoc-gen-ts_proto=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated --ts_proto_opt=nestJs=true --ts_proto_opt=fileSuffix=.pb --proto_path=../proto ../proto/*.proto",
+    "init:env": "cp .env.example .env"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.8.0",

@@ -12,9 +12,9 @@ cd image-uploader
 ```
 
 ### 2. Start the infrastructure services
+Run docker locally
 
 ```bash
-#Run docker locally
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
@@ -40,10 +40,12 @@ cd ../image-service && npm run proto:generate
 cd ../api-gateway && npm run proto:generate
 ```
  ### 5. ADD Environment Variables
+Before start you must create a '.env' file based on '.env.examle'
 
  ```bash
-#Before start you must create a '.env' file based on '.env.examle'
-cp .env.example .env
+cd backend/auth-service && npm run init:env
+cd ../image-service && npm run init:env
+cd ../api-gateway && npm run init:env
 ```
 
 ### 6. Start the backend services
