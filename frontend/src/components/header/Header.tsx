@@ -1,8 +1,6 @@
-import React from "react";
-import { Box, Flex, Heading, Text, Button, HStack, Avatar, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverBody, useDisclosure } from "@chakra-ui/react";
+import { Box, Flex, Heading, Button, HStack, Avatar, Popover, PopoverTrigger, PopoverContent, PopoverArrow, PopoverBody, useDisclosure } from "@chakra-ui/react";
 import { FiLogOut } from "react-icons/fi";
 import { useAuth } from "@/context/AuthContext";
-
 
 export const Header = () => {
   const { user, logout } = useAuth();
