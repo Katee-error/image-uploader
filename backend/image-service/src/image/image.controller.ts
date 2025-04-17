@@ -1,79 +1,26 @@
-import { Controller, OnModuleInit } from "@nestjs/common";
+import { Controller } from "@nestjs/common";
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable, Subject } from "rxjs";
 import { ImageService } from "./image.service";
 import { Image } from "../entities/image.entity";
-
-interface UploadImageRequest {
-  metadata?: {
-    filename: string;
-    contentType: string;
-    userId: string;
-  };
-  chunk?: Uint8Array;
-}
-
-interface UploadImageResponse {
-  success: boolean;
-  message: string;
-  image?: ImageInfo;
-  originalImageUrl: string;
-}
-
-interface GetImageByIdRequest {
-  imageId: string;
-}
-
-interface GetOriginalImageRequest {
-  imageId: string;
-}
-
-interface GetOptimizedImageRequest {
-  imageId: string;
-}
-
-interface GetImageResponse {
-  success: boolean;
-  message: string;
-  imageData: Uint8Array;
-  contentType: string;
-}
-
-interface ImageInfo {
-  id: string;
-  originalName: string;
-  filePath: string;
-  processingStatus: string;
-  dimensions?: {
-    width: number;
-    height: number;
-  };
-  userId: string;
-  uploadDate: string;
-  optimizedPath?: string;
-}
+import { GetImageByIdRequest, GetImageResponse, GetOptimizedImageRequest, GetOriginalImageRequest, ImageInfo, UploadImageRequest, UploadImageResponse } from "./image.interface";
 
 @Controller()
-export class ImageController implements OnModuleInit {
+export class ImageController {
   constructor(private readonly imageService: ImageService) {}
-
-  private readonly imageStreams = new Map<string, Subject<UploadImageRequest>>();
-
-  onModuleInit() {}
 
   @GrpcStreamMethod("ImageService", "UploadImage")
   uploadImage(
-    messages: Observable<UploadImageRequest>,
-    metadata: any
+    messages: Observable<UploadImageRequest>
   ): Observable<UploadImageResponse> {
     const subject = new Subject<UploadImageResponse>();
     const chunks: Uint8Array[] = [];
-    let imageMetadata: UploadImageRequest["metadata"];
+    let metadata: UploadImageRequest["metadata"];
 
     messages.subscribe({
-      next: async (message: UploadImageRequest) => {
+      next: async (message) => {
         if (message.metadata) {
-          imageMetadata = message.metadata;
+          metadata = message.metadata;
         } else if (message.chunk) {
           const chunk = new Uint8Array(
             message.chunk.buffer,
@@ -85,55 +32,35 @@ export class ImageController implements OnModuleInit {
       },
       complete: async () => {
         try {
-          if (!imageMetadata) {
-            subject.next({
-              success: false,
-              message: "No metadata provided",
-              originalImageUrl: "",
-            });
-            subject.complete();
-            return;
+          if (!metadata) {
+            return subjectError(subject, "No metadata provided");
           }
 
-          const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
-          const fileBuffer = new Uint8Array(totalLength);
-          let offset = 0;
-          for (const chunk of chunks) {
-            fileBuffer.set(chunk, offset);
-            offset += chunk.byteLength;
-          }
+          const buffer = this.concatChunks(chunks);
 
           const imageEntity = await this.imageService.uploadImage(
-            Buffer.from(fileBuffer),
-            imageMetadata.filename,
-            imageMetadata.contentType,
-            imageMetadata.userId
+            Buffer.from(buffer),
+            metadata.filename,
+            metadata.contentType,
+            metadata.userId
           );
 
           subject.next({
             success: true,
             message: "Image uploaded successfully",
             originalImageUrl: imageEntity.filePath,
-            image: this.mapImageToInfo(imageEntity),
-          }); 
-          
-        } catch (error: any) {
-          console.error("[❌] Upload error:", error);
-          subject.next({
-            success: false,
-            message: error.message || "Failed to upload image",
-            originalImageUrl: "",
+            image: ImageController.mapImageToInfo(imageEntity),
           });
+        } catch (error) {
+          console.error("[❌] Upload error:", error);
+          subjectError(subject, (error as Error).message || "Failed to upload image");
         } finally {
           subject.complete();
         }
       },
-      error: (err) => {
-        subject.next({
-          success: false,
-          message: err.message || "Error processing upload",
-          originalImageUrl: "",
-        });
+      error: (err: unknown) => {
+        console.error("[❌] Stream error:", err);
+        subjectError(subject, (err as Error).message || "Error processing upload");
         subject.complete();
       },
     });
@@ -145,8 +72,8 @@ export class ImageController implements OnModuleInit {
   async getImageById(request: GetImageByIdRequest): Promise<ImageInfo | null> {
     try {
       const image = await this.imageService.getImageById(request.imageId);
-      return this.mapImageToInfo(image);
-    } catch (error) {
+      return ImageController.mapImageToInfo(image);
+    } catch {
       return null;
     }
   }
@@ -156,21 +83,17 @@ export class ImageController implements OnModuleInit {
     request: GetOriginalImageRequest
   ): Promise<GetImageResponse> {
     try {
-      const { buffer, contentType } = await this.imageService.getOriginalImageData(request.imageId);
+      const { buffer, contentType } = await this.imageService.getOriginalImageData(
+        request.imageId
+      );
       return {
         success: true,
         message: "Original image retrieved successfully",
         imageData: new Uint8Array(buffer),
         contentType,
       };
-    } catch (error: any) {
-      console.error(`Error in getOriginalImage gRPC method: ${error.message}`);
-      return {
-        success: false,
-        message: error.message || "Failed to get original image",
-        imageData: new Uint8Array(),
-        contentType: "",
-      };
+    } catch (error: unknown) {
+      return this.handleImageError("getOriginalImage", error);
     }
   }
 
@@ -179,35 +102,61 @@ export class ImageController implements OnModuleInit {
     request: GetOptimizedImageRequest
   ): Promise<GetImageResponse> {
     try {
-      const { buffer, contentType } = await this.imageService.getOptimizedImageData(request.imageId);
+      const { buffer, contentType } = await this.imageService.getOptimizedImageData(
+        request.imageId
+      );
       return {
         success: true,
         message: "Optimized image retrieved successfully",
         imageData: new Uint8Array(buffer),
         contentType,
       };
-    } catch (error: any) {
-      console.error(`Error in getOptimizedImage gRPC method: ${error.message}`);
-      return {
-        success: false,
-        message: error.message || "Failed to get optimized image",
-        imageData: new Uint8Array(),
-        contentType: "",
-      };
+    } catch (error: unknown) {
+      return this.handleImageError("getOptimizedImage", error);
     }
   }
 
-  private mapImageToInfo(image: Image): ImageInfo {
+  //  Helpers
+  private concatChunks(chunks: Uint8Array[]): Uint8Array {
+    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+    const fileBuffer = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const chunk of chunks) {
+      fileBuffer.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return fileBuffer;
+  }
+
+  private handleImageError(method: string, error: unknown): GetImageResponse {
+    console.error(`Error in ${method} gRPC method:`, error);
+    return {
+      success: false,
+      message: (error as Error).message || `Failed to get image`,
+      imageData: new Uint8Array(),
+      contentType: "",
+    };
+  }
+
+  private static mapImageToInfo(image: Image): ImageInfo {
     return {
       id: image.id,
       originalName: image.originalName,
       filePath: image.filePath,
       processingStatus: image.processingStatus,
-      dimensions: image.dimensions || undefined,
+      dimensions: image.dimensions,
       userId: image.userId,
       uploadDate: image.uploadDate.toISOString(),
-      optimizedPath: image.optimizedPath || undefined,
+      optimizedPath: image.optimizedPath,
     };
   }
 }
 
+// Error utility
+function subjectError(subject: Subject<UploadImageResponse>, message: string) {
+  subject.next({
+    success: false,
+    message,
+    originalImageUrl: "",
+  });
+}

@@ -5,6 +5,8 @@ import { InjectQueue } from "@nestjs/bull";
 import { Queue } from "bull";
 import { S3Service } from "./s3.service";
 import { Image, ProcessingStatus } from "../entities/image.entity";
+import { resolveContentType } from "src/utils/mime-type.util";
+import { extractS3KeyFromUrl, fetchImageFromS3 } from "src/utils/s3.util";
 
 @Injectable()
 export class ImageService {
@@ -48,19 +50,15 @@ export class ImageService {
       );
     }
 
-    return await this.imageRepository.findOneOrFail({
-      where: { id: savedImage.id },
-    });
+    return this.imageRepository.findOneOrFail({ where: { id: savedImage.id } });
   }
+
   async getImageById(id: string): Promise<Image> {
-    const image = await this.imageRepository.findOne({
-      where: { id },
-    });
+    const image = await this.imageRepository.findOne({ where: { id } });
 
     if (!image) {
       throw new NotFoundException(`Image with ID ${id} not found`);
     }
-
     return image;
   }
 
@@ -73,6 +71,7 @@ export class ImageService {
     ) {
       throw new NotFoundException("Optimized image not available yet");
     }
+
     return image.optimizedPath;
   }
 
@@ -81,36 +80,16 @@ export class ImageService {
   ): Promise<{ buffer: Buffer; contentType: string; url: string }> {
     const image = await this.getImageById(id);
 
-    try {
-      const urlParts = new URL(image.filePath);
-      const pathParts = urlParts.pathname.split("/");
-      const key = pathParts.slice(pathParts.indexOf("original")).join("/");
+    const key = extractS3KeyFromUrl(image.filePath, "original");
+    const buffer = await fetchImageFromS3(this.s3Service.getFileUrl.bind(this.s3Service), key, "original");
+    
+    const contentType = resolveContentType(image.originalName);
 
-      const imageUrl = await this.s3Service.getFileUrl(key);
-
-      const response = await fetch(imageUrl);
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch original image: ${response.statusText}`
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      return {
-        buffer,
-        contentType:
-          image.originalName.split(".").pop() || "application/octet-stream",
-        url: image.filePath,
-      };
-    } catch (error) {
-      console.error(`Error fetching original image data: ${error.message}`);
-      throw new NotFoundException(
-        `Failed to fetch original image: ${error.message}`
-      );
-    }
+    return {
+      buffer,
+      contentType,
+      url: image.filePath,
+    };
   }
 
   async getOptimizedImageData(
@@ -125,34 +104,18 @@ export class ImageService {
       throw new NotFoundException("Optimized image not available yet");
     }
 
-    try {
-      const urlParts = new URL(image.optimizedPath);
-      const pathParts = urlParts.pathname.split("/");
-      const key = pathParts.slice(pathParts.indexOf("optimized")).join("/");
+    const key = extractS3KeyFromUrl(image.optimizedPath, "optimized");
+    const buffer = await fetchImageFromS3(
+      this.s3Service.getFileUrl.bind(this.s3Service),
+      key,
+      "optimized"
+    );
 
-      const imageUrl = await this.s3Service.getFileUrl(key);
-
-      const response = await fetch(imageUrl);
-
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch optimized image: ${response.statusText}`
-        );
-      }
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      return {
-        buffer,
-        contentType: "image/webp",
-        url: image.optimizedPath,
-      };
-    } catch (error) {
-      console.error(`Error fetching optimized image data: ${error.message}`);
-      throw new NotFoundException(
-        `Failed to fetch optimized image: ${error.message}`
-      );
-    }
+    return {
+      buffer,
+      contentType: "image/webp",
+      url: image.optimizedPath,
+    };
   }
+
 }
