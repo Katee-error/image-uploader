@@ -4,11 +4,9 @@ import {
   VStack,
   Text,
   Spinner,
-  useColorModeValue,
 } from "@chakra-ui/react";
 import { FiUpload } from "react-icons/fi";
 import { DropzoneProps } from "@/types/image";
-
 
 export const ImageDropzone: React.FC<DropzoneProps> = ({
   getRootProps,
@@ -16,8 +14,6 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
   isDragActive,
   isUploading,
 }) => {
-  const dropzoneColor = useColorModeValue("gray.100", "gray.700");
-  const dropzoneActiveColor = useColorModeValue("brand.50", "brand.900");
 
   return (
     <Box
@@ -27,19 +23,20 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
       borderRadius="md"
       borderColor={isDragActive ? "brand.500" : "gray.300"}
       borderStyle="dashed"
-      bg={isDragActive ? dropzoneActiveColor : dropzoneColor}
+      bg={isDragActive ? 'gray.300' : 'gray.100'}
       cursor="pointer"
+      _hover={{ borderColor: "blue" }}
     >
       <input {...getInputProps()} />
       <VStack spacing={4}>
-        <FiUpload size={40} color={isDragActive ? "brand.500" : "gray.500"} />
+        <FiUpload size={40} color={isDragActive ? "blue" : "gray.500"} />
         {isUploading ? (
           <>
             <Spinner size="xl" color="brand.500" />
             <Text>Uploading...</Text>
           </>
         ) : (
-          <Text color={isDragActive ? "brand.500" : "gray.500"}>
+          <Text color={isDragActive ? "blue" : "gray.500"}>
             {isDragActive
               ? "Drop the image here"
               : "Drag and drop an image, or click to select"}

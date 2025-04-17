@@ -28,6 +28,8 @@ export const OptimizedImage: React.FC<{ imageId: string; originalName: string }>
           title: "Error",
           description: message,
           status: "error",
+          isClosable: true,
+          containerStyle: {bgColor: "#0A7F08", color: '#ffffff',  borderRadius: "md"},
         });
       } finally {
         setLoading(false);
@@ -60,7 +62,7 @@ export const OptimizedImage: React.FC<{ imageId: string; originalName: string }>
         bg="gray.100"
         borderRadius="md"
       >
-        <Text color="red.500">{error || "No image found"}</Text>
+        <Text color='red'>{error || "No image found"}</Text>
       </Flex>
     );
   }

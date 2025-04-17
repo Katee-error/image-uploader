@@ -37,7 +37,7 @@ export const RegisterForm: React.FC = () => {
               },
             })}
           />
-          <FormErrorMessage>{formMethods.formState.errors.password?.message}</FormErrorMessage>
+          <FormErrorMessage color='red'>{formMethods.formState.errors.password?.message}</FormErrorMessage>
         </FormControl>
 
         <FormControl isInvalid={!!formMethods.formState.errors.confirmPassword}>
@@ -51,7 +51,7 @@ export const RegisterForm: React.FC = () => {
                 value === formMethods.getValues('password') || 'Passwords don`t match',
             })}
           />
-          <FormErrorMessage>{formMethods.formState.errors.confirmPassword?.message}</FormErrorMessage>
+          <FormErrorMessage color='red'>{formMethods.formState.errors.confirmPassword?.message}</FormErrorMessage>
         </FormControl>
 
         <Button

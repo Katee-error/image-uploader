@@ -34,6 +34,9 @@ export const useImageUpload = () => {
           title: "Uploaded",
           description: "Your image is being processed",
           status: "success",
+          isClosable: true,
+          containerStyle: {bgColor: "#0A7F08", color: '#ffffff',  borderRadius: "md",},
+
         });
 
         setCurrentImage(result.image);
@@ -43,6 +46,8 @@ export const useImageUpload = () => {
           title: "Upload failed",
           description: error?.response?.data?.message || error.message || "Unknown error",
           status: "error",
+          isClosable: true,
+          containerStyle: {bgColor: "#FA0C0C", color: '#ffffff',  borderRadius: "md",}
         });
       } finally {
         setIsUploading(false);

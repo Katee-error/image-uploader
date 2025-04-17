@@ -34,10 +34,11 @@ export const LoginForm: React.FC = () => {
               minLength: {
                 value: 6,
                 message: 'Password must be at least 6 characters',
+                
               },
             })}
           />
-          <FormErrorMessage>{formMethods.formState.errors.password?.message}</FormErrorMessage>
+          <FormErrorMessage color='red'>{formMethods.formState.errors.password?.message}</FormErrorMessage>
         </FormControl>
 
         <Button

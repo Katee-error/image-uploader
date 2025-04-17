@@ -66,6 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        containerStyle: {bgColor: "#0A7F08", color: '#ffffff',  borderRadius: "md",},
       });
       navigate("/");
     } catch (error) {
@@ -76,6 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
+        containerStyle: {bgColor: "#FA0C0C", color: '#ffffff',  borderRadius: "md",},
       });
       throw error;
     } finally {
@@ -95,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
+        containerStyle: {bgColor: "#FA0C0C", color: '#ffffff',  borderRadius: "md",},
       });
       throw new Error("Passwords do not match");
     }
@@ -109,6 +112,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         status: "success",
         duration: 3000,
         isClosable: true,
+        containerStyle: {bgColor: "#0A7F08", color: '#ffffff',  borderRadius: "md",},
       });
       navigate("/");
     } catch (error) {
@@ -119,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         status: "error",
         duration: 5000,
         isClosable: true,
+        containerStyle: {bgColor: "#FA0C0C", color: '#ffffff',  borderRadius: "md",},
       });
       throw error;
     } finally {
@@ -135,6 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       status: "info",
       duration: 3000,
       isClosable: true,
+      containerStyle: {bgColor: "#176ED9", color: '#ffffff',  borderRadius: "md",},
     });
   };
 
