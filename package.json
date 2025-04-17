@@ -4,6 +4,7 @@
   "description": "Full-stack TypeScript application for uploading, processing, and displaying images",
   "private": true,
   "scripts": {
+    "init:env": "cp .env.example .env",
     "start:infra": "docker-compose -f docker/docker-compose.yml up -d",
     "stop:infra": "docker-compose -f docker/docker-compose.yml down",
     "install:all": "npm run install:backend && npm run install:frontend",
